@@ -42,7 +42,7 @@ const Login = () => {
       localStorage.setItem("token", response.token);
       localStorage.setItem("user", JSON.stringify(response.user));
 
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       setError(err || "Login failed. Try again.");
     } finally {
@@ -53,7 +53,6 @@ const Login = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

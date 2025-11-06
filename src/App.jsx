@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Login from "./pages/Login";
 import UserDetails from "./pages/UserDetails";
+import "./styles.css";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem("token"); // stored after login

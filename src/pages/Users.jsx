@@ -11,9 +11,16 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
-  const location = useLocation();
+
+  // ✅ new modal-related states
+  const [showModal, setShowModal] = useState(false);
+  const [partnerSearch, setPartnerSearch] = useState("");
+  const [partnerList, setPartnerList] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [activeUserId, setActiveUserId] = useState(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const queryParams = new URLSearchParams(location.search);
   const filterStatus = queryParams.get("status");
@@ -25,6 +32,7 @@ export default function Users() {
       const userList = res?.data || res?.data?.data || [];
       setUsers(userList);
       setFilteredUsers(userList);
+      setPartnerList(userList);
     } catch (error) {
       console.error("Failed to fetch users:", error);
     } finally {
@@ -52,7 +60,7 @@ export default function Users() {
           u.role?.toLowerCase().includes(lower) ||
           u.status?.toLowerCase().includes(lower) ||
           u?.basic_information?.gender?.toLowerCase().includes(lower) ||
-          u.phoneNo?.toLowerCase?.()?.includes(lower) // ✅ Added phone to search
+          u.phoneNo?.toLowerCase?.()?.includes(lower)
       );
     }
 
@@ -76,27 +84,36 @@ export default function Users() {
     }
   };
 
-  const handleStatusChange = async (userId, newStatus) => {
-    try {
-      setUpdatingId(userId);
-      await admin.updateUserStatus(userId, { status: newStatus });
-      alert("Status updated successfully");
-      fetchUsers();
-    } catch (error) {
-      alert(error || "Failed to update status");
-    } finally {
-      setUpdatingId(null);
-    }
+  // ✅ open modal instead of prompt
+  const handleMarriedWith = (userId) => {
+    setActiveUserId(userId);
+    setPartnerSearch("");
+    setSelectedUser(null);
+    setShowModal(true);
   };
 
-  const handleRoleChange = async (userId, newRole) => {
+  const handleSelectPartner = (user) => {
+    setSelectedUser(user);
+  };
+
+  const confirmMarriage = async () => {
+    if (!selectedUser) {
+      alert("Please select a partner to proceed!");
+      return;
+    }
+
     try {
-      setUpdatingId(userId);
-      await admin.updateUserRole(userId, { role: newRole });
-      alert("Role updated successfully");
+      setUpdatingId(activeUserId);
+      await admin.updateUserStatus({
+        userId: activeUserId,
+        status: "married",
+        marriedWith: selectedUser._id,
+      });
+      alert("Marriage linked successfully!");
       fetchUsers();
+      setShowModal(false);
     } catch (error) {
-      alert(error || "Failed to update role");
+      alert(error?.response?.data?.message || "Failed to link marriage.");
     } finally {
       setUpdatingId(null);
     }
@@ -104,13 +121,20 @@ export default function Users() {
 
   if (loading) return <h3>Loading users...</h3>;
 
+  // ✅ Filter partner list dynamically by search
+  const filteredPartnerList = partnerList.filter(
+    (u) =>
+      u._id !== activeUserId &&
+      u.fullName?.toLowerCase().includes(partnerSearch.toLowerCase())
+  );
+
   return (
     <div>
       <h1>
         Users {filterStatus && filterStatus !== "all" && `(${filterStatus})`}
       </h1>
 
-      {/* ✅ Search Input */}
+      {/* Search Input */}
       <div style={{ marginBottom: "15px" }}>
         <input
           type="text"
@@ -141,7 +165,7 @@ export default function Users() {
             <th>Name</th>
             <th>Email</th>
             <th>Gender</th>
-            <th>Phone</th> {/* ✅ Added phone column */}
+            <th>Phone</th>
             <th>Role</th>
             <th>Status</th>
             <th>Actions</th>
@@ -181,7 +205,14 @@ export default function Users() {
                   <select
                     value={u.status}
                     disabled={updatingId === u._id}
-                    onChange={(e) => handleStatusChange(u._id, e.target.value)}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      if (newStatus === "married") {
+                        handleMarriedWith(u._id);
+                      } else {
+                        handleStatusChange(u._id, newStatus);
+                      }
+                    }}
                   >
                     {allowedStatuses.map((status) => (
                       <option key={status} value={status}>
@@ -203,7 +234,7 @@ export default function Users() {
                         borderRadius: "4px",
                         cursor: "pointer",
                       }}
-                      onClick={() => alert(`Delete feature coming soon`)}
+                      onClick={() => alert("Delete feature coming soon")}
                     >
                       Delete
                     </button>
@@ -220,6 +251,103 @@ export default function Users() {
           )}
         </tbody>
       </table>
+
+      {/* ✅ Marriage Modal */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: `rgba(${colors.rowDefault.r}, ${colors.rowDefault.g}, ${colors.rowDefault.b}, 0.5)`,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+          }}
+        >
+          <div
+            style={{
+              background: colors.modalContent,
+              padding: "20px",
+              borderRadius: "10px",
+              width: "400px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+              position: "relative",
+            }}
+          >
+            {/* ❌ Close Button */}
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: `rgba(${colors.rowDefault.r}, ${colors.rowDefault.g}, ${colors.rowDefault.b}, 0)`,
+                border: "none",
+                fontSize: "20px",
+                cursor: "pointer",
+              }}
+            >
+              ❌
+            </button>
+
+            <h3>Select a partner</h3>
+            <input
+              type="text"
+              placeholder="Search partner by name..."
+              value={partnerSearch}
+              onChange={(e) => setPartnerSearch(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "8px",
+                borderRadius: "6px",
+                border: `1px solid ${colors.inputBorder}`,
+                marginBottom: "10px",
+              }}
+            />
+
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {filteredPartnerList.map((user) => (
+                <li
+                  key={user._id}
+                  onClick={() => handleSelectPartner(user)}
+                  style={{
+                    padding: "8px",
+                    marginBottom: "5px",
+                    borderRadius: "6px",
+                    background:
+                      selectedUser?._id === user._id ? "#00BFFF" : "#f4f4f4",
+                    color: selectedUser?._id === user._id ? "#fff" : "#000",
+                    cursor: "pointer",
+                  }}
+                >
+                  {user.fullName} — {user.email}
+                </li>
+              ))}
+            </ul>
+
+            <button
+              onClick={confirmMarriage}
+              style={{
+                width: "100%",
+                padding: "10px",
+                background: colors.primary,
+                color: colors.tableHeaderText,
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              Confirm Marriage
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
