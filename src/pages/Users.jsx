@@ -261,7 +261,7 @@ export default function Users() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: `rgba(${colors.rowDefault.r}, ${colors.rowDefault.g}, ${colors.rowDefault.b}, 0.5)`,
+            background: "rgba(0,0,0,0.5)",
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
@@ -270,7 +270,7 @@ export default function Users() {
         >
           <div
             style={{
-              background: colors.modalContent,
+              background: "#fff",
               padding: "20px",
               borderRadius: "10px",
               width: "400px",
@@ -286,7 +286,7 @@ export default function Users() {
                 position: "absolute",
                 top: "10px",
                 right: "10px",
-                background: `rgba(${colors.rowDefault.r}, ${colors.rowDefault.g}, ${colors.rowDefault.b}, 0)`,
+                background: "transparent",
                 border: "none",
                 fontSize: "20px",
                 cursor: "pointer",
@@ -305,7 +305,7 @@ export default function Users() {
                 width: "100%",
                 padding: "8px",
                 borderRadius: "6px",
-                border: `1px solid ${colors.inputBorder}`,
+                border: "1px solid #ccc",
                 marginBottom: "10px",
               }}
             />
@@ -335,8 +335,8 @@ export default function Users() {
               style={{
                 width: "100%",
                 padding: "10px",
-                background: colors.primary,
-                color: colors.tableHeaderText,
+                background: "#00BFFF",
+                color: "#fff",
                 border: "none",
                 borderRadius: "6px",
                 cursor: "pointer",
