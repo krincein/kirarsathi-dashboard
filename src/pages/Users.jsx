@@ -163,7 +163,7 @@ export default function Users() {
                 </td>
                 <td>{u.email || "N/A"}</td>
                 <td>{u?.basic_information?.gender || "N/A"}</td>
-                <td>{u.phoneNo || "N/A"}</td>
+                <td>{`+91 ${u.phoneNo}` || "N/A"}</td>
                 <td>
                   <select
                     value={u.role}
